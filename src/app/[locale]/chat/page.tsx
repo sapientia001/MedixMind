@@ -22,13 +22,13 @@ export default function Chat() {
   const [isComplete, setIsComplete] = useState(false);
   const [listening, setListening] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(true);
-  
+
   // Camera & Mandatory Photo States
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
-  const [hasTakenPhoto, setHasTakenPhoto] = useState(false); 
-  const [showPhotoPrompt, setShowPhotoPrompt] = useState(true); // New state for the prompt
-  
+  const [hasTakenPhoto, setHasTakenPhoto] = useState(false);
+  const [showPhotoPrompt, setShowPhotoPrompt] = useState(true);
+
   const recognitionRef = useRef<any>(null);
   const spokenMessageIdRef = useRef<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -59,7 +59,7 @@ export default function Chat() {
 
     spokenMessageIdRef.current = lastAssistant.id;
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = currentLocale === 'ru' ? 'ru-RU' : 'en-US';
+    utterance.lang = currentLocale === "ru" ? "ru-RU" : "en-US";
     window.speechSynthesis.speak(utterance);
   }, [messages, audioEnabled, isLoading, currentLocale]);
 
@@ -72,7 +72,7 @@ export default function Chat() {
     const recognition = new SpeechRecognitionClass();
     recognition.continuous = false;
     recognition.interimResults = false;
-    
+
     recognition.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript;
       setInput((prev) => (prev ? `${prev} ${transcript}` : transcript));
@@ -85,22 +85,24 @@ export default function Chat() {
 
   const toggleVoice = () => {
     if (!hasTakenPhoto) {
-      toast.error("Please take a photo before speaking.");
+      toast.error(t("photoRequiredToast"));
       return;
     }
     const recognition = recognitionRef.current;
     if (!recognition) return;
-    if (listening) { recognition.stop(); setListening(false); }
-    else { 
-      recognition.lang = currentLocale === 'ru' ? 'ru-RU' : 'en-US';
-      recognition.start(); 
-      setListening(true); 
+    if (listening) {
+      recognition.stop();
+      setListening(false);
+    } else {
+      recognition.lang = currentLocale === "ru" ? "ru-RU" : "en-US";
+      recognition.start();
+      setListening(true);
     }
   };
 
   // CAMERA LOGIC
   const openCamera = async () => {
-    setShowPhotoPrompt(false); 
+    setShowPhotoPrompt(false);
     setIsCameraOpen(true);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -108,7 +110,7 @@ export default function Chat() {
         videoRef.current.srcObject = stream;
       }
     } catch (err) {
-      toast.error("Could not access camera.");
+      toast.error(t("cameraError"));
       setIsCameraOpen(false);
       setShowPhotoPrompt(true);
     }
@@ -117,11 +119,11 @@ export default function Chat() {
   const closeCamera = () => {
     if (videoRef.current && videoRef.current.srcObject) {
       const stream = videoRef.current.srcObject as MediaStream;
-      stream.getTracks().forEach(track => track.stop());
+      stream.getTracks().forEach((track) => track.stop());
     }
     setIsCameraOpen(false);
     setCapturedImage(null);
-    
+
     if (!hasTakenPhoto) {
       setShowPhotoPrompt(true);
     }
@@ -147,16 +149,16 @@ export default function Chat() {
         await fetch("/api/upload-photo", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
+          body: JSON.stringify({
             photoData: capturedImage,
-            patientId: '69216731-ec0a-4f4e-9cca-e017433b6917'
+            patientId: "69216731-ec0a-4f4e-9cca-e017433b6917",
           }),
         });
-        setHasTakenPhoto(true); 
+        setHasTakenPhoto(true);
         closeCamera();
-        toast.success("Photo verified. You can now start the chat.");
+        toast.success(t("photoVerified"));
       } catch (error) {
-        toast.error("Failed to upload photo.");
+        toast.error(t("photoUploadFailed"));
       }
     }
   };
@@ -175,9 +177,9 @@ export default function Chat() {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          messages: newMessages.map(m => ({ role: m.role, parts: [{ type: "text", text: m.content }] })),
-          locale: currentLocale 
+        body: JSON.stringify({
+          messages: newMessages.map((m) => ({ role: m.role, parts: [{ type: "text", text: m.content }] })),
+          locale: currentLocale,
         }),
       });
 
@@ -199,20 +201,19 @@ export default function Chat() {
           if (line.startsWith("data: ") && line !== "data: [DONE]") {
             try {
               const data = JSON.parse(line.slice(6));
-              
+
               if (data.type === "text") {
                 assistantContent += data.text;
-                
+
                 if (assistantContent.includes("[ASSESSMENT_COMPLETE]")) {
                   setIsComplete(true);
                 }
 
                 const cleanText = assistantContent.replace(/\[.*?\]/g, "").trim();
-                
+
                 setMessages((prev) =>
                   prev.map((m) => (m.id === assistantId ? { ...m, content: cleanText } : m))
                 );
-                
               } else if (data.type === "safety_override") {
                 if (typeof window !== "undefined") window.speechSynthesis.cancel();
                 router.push(`/${currentLocale}/chat/safety`);
@@ -240,15 +241,14 @@ export default function Chat() {
       }
     >
       <div className="border rounded-xl bg-card mx-auto flex h-[calc(100vh-9rem)] max-w-3xl flex-col shadow-sm overflow-hidden relative">
-        
+
         {/* MANDATORY PHOTO OVERLAY (WITH CLOSE BUTTON) */}
         {!hasTakenPhoto && showPhotoPrompt && (
           <div className="fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center">
             <div className="bg-card p-8 rounded-2xl shadow-2xl max-w-md w-full animate-in fade-in zoom-in-95 duration-200 relative">
-              
-              {/* CLOSE BUTTON */}
-              <button 
-                onClick={() => setShowPhotoPrompt(false)} 
+
+              <button
+                onClick={() => setShowPhotoPrompt(false)}
                 className="absolute top-4 right-4 text-muted-foreground hover:text-foreground p-1 bg-muted rounded-full transition-colors"
               >
                 <X className="h-4 w-4" />
@@ -257,16 +257,13 @@ export default function Chat() {
               <div className="grid h-20 w-20 place-items-center rounded-full bg-primary/10 text-primary mb-6 mx-auto">
                 <Camera className="h-10 w-10" />
               </div>
-              <h2 className="text-xl font-bold text-foreground mb-2">
-                {currentLocale === 'ru' ? "Требуется фотография" : "Photo Required"}
-              </h2>
-              <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-                {currentLocale === 'ru' 
-                  ? "Для обеспечения клинической безопасности вы должны сделать текущую фотографию себя перед началом оценки. Это поможет вашему врачу оценить ваше состояние."
-                  : "To ensure clinical safety, you must take a current photo of yourself before starting the assessment. This helps your doctor verify your current affect."}
-              </p>
-              <button onClick={openCamera} className="w-full rounded-lg bg-primary px-8 py-3 text-sm font-bold text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm">
-                {currentLocale === 'ru' ? "Открыть камеру" : "Open Camera"}
+              <h2 className="text-xl font-bold text-foreground mb-2">{t("photoRequired")}</h2>
+              <p className="text-sm text-muted-foreground mb-6 leading-relaxed">{t("photoDesc")}</p>
+              <button
+                onClick={openCamera}
+                className="w-full rounded-lg bg-primary px-8 py-3 text-sm font-bold text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
+              >
+                {t("openCamera")}
               </button>
             </div>
           </div>
@@ -277,17 +274,20 @@ export default function Chat() {
           <div className="bg-destructive/10 border-b border-destructive/30 p-3 flex items-center justify-between z-30">
             <div className="flex items-center gap-2 text-destructive font-semibold text-xs">
               <Camera className="h-4 w-4" />
-              {currentLocale === 'ru' ? "Фото обязательно для начала чата" : "Photo required to start chat"}
+              {t("photoRequiredBanner")}
             </div>
-            <button onClick={openCamera} className="rounded-md bg-destructive text-destructive-foreground px-3 py-1 text-[11px] font-bold hover:bg-destructive/90 transition-colors">
-              {currentLocale === 'ru' ? "Сделать фото" : "Take Photo"}
+            <button
+              onClick={openCamera}
+              className="rounded-md bg-destructive text-destructive-foreground px-3 py-1 text-[11px] font-bold hover:bg-destructive/90 transition-colors"
+            >
+              {t("takePhoto")}
             </button>
           </div>
         )}
 
         {/* HEADER */}
         <div className="flex items-center gap-3 border-b p-4 shrink-0 bg-card z-10">
-          <Link href="/" className="text-primary hover:bg-primary-soft p-1.5 rounded-lg transition-colors">
+          <Link href={`/${currentLocale}`} className="text-primary hover:bg-primary-soft p-1.5 rounded-lg transition-colors">
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div>
@@ -328,7 +328,7 @@ export default function Chat() {
               </div>
             );
           })}
-          
+
           <div ref={messagesEndRef} />
         </div>
 
@@ -338,7 +338,7 @@ export default function Chat() {
             <button
               type="button"
               onClick={toggleVoice}
-              aria-label="Speak"
+              aria-label={t("voiceAria")}
               className={cn(
                 "absolute -top-8 left-1/2 grid h-14 w-14 -translate-x-1/2 place-items-center rounded-full shadow-lg ring-4 ring-primary/20 transition-colors",
                 listening ? "bg-destructive text-white animate-pulse" : "bg-primary text-primary-foreground"
@@ -347,22 +347,23 @@ export default function Chat() {
               <Mic className="h-6 w-6" />
             </button>
           )}
-          
+
           {isComplete ? (
             <div className="flex justify-center mt-2">
-              <Link 
-                href="/" 
+              <Link
+                href={`/${currentLocale}`}
                 className="flex items-center justify-center gap-2 rounded-lg bg-primary px-8 py-3 text-sm font-bold text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm w-full"
               >
-                <CheckCircle2 className="h-5 w-5" /> {currentLocale === 'ru' ? "Завершить и вернуться" : "Finish & Return Home"}
+                <CheckCircle2 className="h-5 w-5" /> {t("finishReturn")}
               </Link>
             </div>
           ) : (
             <form onSubmit={submit} className="flex gap-2 mt-4 items-center">
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={openCamera}
                 className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground hover:bg-muted/80 transition-colors"
+                aria-label={t("takePhoto")}
               >
                 <Camera className="h-5 w-5" />
               </button>
@@ -378,11 +379,9 @@ export default function Chat() {
               </button>
             </form>
           )}
-          
+
           <p className="mt-3 text-center text-[11px] text-muted-foreground">
-            {isComplete 
-              ? (currentLocale === 'ru' ? "Оценка завершена." : "Assessment complete.") 
-              : t("tapToSpeak")}
+            {isComplete ? t("assessmentComplete") : t("tapToSpeak")}
           </p>
         </div>
       </div>
@@ -392,44 +391,44 @@ export default function Chat() {
         <div className="fixed inset-0 z-50 grid place-items-center bg-slate-900/80 p-4">
           <div className="w-full max-w-lg overflow-hidden rounded-xl bg-card shadow-2xl animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between border-b p-4">
-              <h2 className="text-lg font-bold">
-                {currentLocale === 'ru' ? "Сделать фото" : "Take a Photo"}
-              </h2>
-              <button onClick={closeCamera}><X className="h-5 w-5" /></button>
+              <h2 className="text-lg font-bold">{t("takePhoto")}</h2>
+              <button onClick={closeCamera} aria-label={t("closeAria")}>
+                <X className="h-5 w-5" />
+              </button>
             </div>
-            
+
             <div className="p-4 flex flex-col items-center">
               <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden mb-4">
                 {!capturedImage ? (
                   <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
                 ) : (
-                  <img src={capturedImage} alt="Captured" className="w-full h-full object-cover" />
+                  <img src={capturedImage} alt={t("capturedPhotoAlt")} className="w-full h-full object-cover" />
                 )}
               </div>
-              
+
               <canvas ref={canvasRef} className="hidden" />
-              
+
               <div className="flex gap-3 w-full">
                 {!capturedImage ? (
-                  <button 
+                  <button
                     onClick={capturePhoto}
                     className="flex-1 rounded-lg bg-primary py-3 text-sm font-bold text-primary-foreground hover:bg-primary/90 transition-colors"
                   >
-                    {currentLocale === 'ru' ? "Сделать снимок" : "Capture Photo"}
+                    {t("capturePhoto")}
                   </button>
                 ) : (
                   <>
-                    <button 
+                    <button
                       onClick={() => setCapturedImage(null)}
                       className="flex-1 rounded-lg border border-border bg-card py-3 text-sm font-bold hover:bg-muted transition-colors"
                     >
-                      {currentLocale === 'ru' ? "Переснять" : "Retake"}
+                      {t("retakePhoto")}
                     </button>
-                    <button 
+                    <button
                       onClick={submitPhoto}
                       className="flex-1 rounded-lg bg-primary py-3 text-sm font-bold text-primary-foreground hover:bg-primary/90 transition-colors"
                     >
-                      {currentLocale === 'ru' ? "Подтвердить и начать чат" : "Confirm & Start Chat"}
+                      {t("confirmStartChat")}
                     </button>
                   </>
                 )}

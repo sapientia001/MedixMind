@@ -1,13 +1,15 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useTranslations } from "next-intl";
+import { usePathname } from "next/navigation";
 import { DoctorShell } from "@/components/medix";
 import { Send, User, Stethoscope, ArrowLeft, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import Link from "next/link";
+import { usePageTour } from "@/hooks/usePageTour";
 
-// HARDCODED DEMO IDs
 const PATIENT_ID = "69216731-ec0a-4f4e-9cca-e017433b6917";
 const DOCTOR_ID = "abae8689-6bf8-4e3f-a505-2556e9f21802";
 
@@ -19,10 +21,24 @@ type Message = {
 };
 
 export default function DoctorMessages() {
+  const t = useTranslations("DoctorMessages");
+  const pathname = usePathname();
+  const currentLocale = pathname.split("/")[1] || "ru";
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
+  // NEW: mobile pane state — "list" shows the inbox, "chat" shows the conversation
+  const [mobileView, setMobileView] = useState<"list" | "chat">("list");
   const endRef = useRef<HTMLDivElement>(null);
+
+  usePageTour("doctor-messages", [
+    {
+      element: '[data-onboarding-id="doctor-messages-header"]',
+      titleKey: "doctorMessagesHeaderTitle",
+      descKey: "doctorMessagesHeaderDesc",
+    },
+  ]);
 
   const fetchMessages = async () => {
     try {
@@ -36,7 +52,7 @@ export default function DoctorMessages() {
 
   useEffect(() => {
     fetchMessages();
-    const interval = setInterval(fetchMessages, 3000); // Poll every 3 seconds
+    const interval = setInterval(fetchMessages, 3000);
     return () => clearInterval(interval);
   }, []);
 
@@ -58,28 +74,47 @@ export default function DoctorMessages() {
       setInput("");
       fetchMessages();
     } catch (error) {
-      toast.error("Failed to send message");
+      toast.error(t("sendFailed"));
     } finally {
       setIsSending(false);
     }
   };
 
+  // When a patient is tapped on mobile, switch to the chat pane
+  const openChat = () => setMobileView("chat");
+
   return (
     <DoctorShell>
-      <div className="mx-auto max-w-4xl flex gap-4 h-[calc(100vh-10rem)]">
-        
-        {/* LEFT SIDEBAR: Patient List for Inbox */}
-        <div className="w-1/3 card-surface flex flex-col overflow-hidden">
-          <div className="p-4 border-b bg-muted/10">
+      {/*
+        Layout strategy:
+        - Mobile (< lg): one pane at a time. `mobileView` controls which.
+          Fixed height using dvh so the keyboard doesn't push the input off-screen.
+        - Desktop (>= lg): both panes side by side, as before.
+      */}
+      <div className="mx-auto max-w-4xl flex gap-4 h-[calc(100dvh-8rem)] lg:h-[calc(100vh-10rem)]">
+
+        {/* ===== LEFT: INBOX ===== */}
+        <div
+          data-onboarding-id="doctor-messages-header"
+          className={cn(
+            "card-surface flex-col overflow-hidden",
+            // Mobile: full width, show only when mobileView === "list"
+            "w-full lg:w-1/3 lg:flex",
+            mobileView === "list" ? "flex" : "hidden"
+          )}
+        >
+          <div className="p-4 border-b bg-muted/10 shrink-0">
             <h2 className="text-sm font-bold flex items-center gap-2">
-              <MessageSquare className="h-4 w-4 text-primary" /> Inbox
+              <MessageSquare className="h-4 w-4 text-primary" /> {t("inbox")}
             </h2>
           </div>
-          <div className="flex-1 overflow-y-auto">
-            {/* Active Patient Chat */}
-            <div className="p-4 border-b bg-primary/5 cursor-pointer border-l-4 border-l-primary">
+          <div className="flex-1 overflow-y-auto overscroll-contain">
+            <button
+              onClick={openChat}
+              className="w-full text-left p-4 border-b bg-primary/5 cursor-pointer border-l-4 border-l-primary"
+            >
               <div className="flex items-center gap-3">
-                <div className="grid h-10 w-10 place-items-center rounded-full bg-primary text-primary-foreground font-bold text-sm">
+                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground font-bold text-sm">
                   MJ
                 </div>
                 <div className="min-w-0">
@@ -87,35 +122,68 @@ export default function DoctorMessages() {
                   <p className="text-xs text-muted-foreground truncate">MD-12345</p>
                 </div>
               </div>
-            </div>
+            </button>
           </div>
         </div>
 
-        {/* RIGHT SIDEBAR: Chat Window */}
-        <div className="w-2/3 card-surface flex flex-col overflow-hidden">
-          <div className="flex items-center gap-3 border-b p-4 shrink-0 bg-card">
-            <Link href="/doctor/patients" className="text-primary hover:bg-primary-soft p-1.5 rounded-lg transition-colors">
+        {/* ===== RIGHT: CHAT ===== */}
+        <div
+          className={cn(
+            "card-surface flex-col overflow-hidden",
+            // Mobile: full width, show only when mobileView === "chat"
+            "w-full lg:w-2/3 lg:flex",
+            mobileView === "chat" ? "flex" : "hidden"
+          )}
+        >
+          {/* Header with back button — back goes to inbox on mobile, to patients list on desktop */}
+          <div className="flex items-center gap-3 border-b p-3 sm:p-4 shrink-0 bg-card">
+            <button
+              type="button"
+              onClick={() => setMobileView("list")}
+              aria-label={t("backAria")}
+              className="text-primary hover:bg-primary-soft p-1.5 rounded-lg transition-colors lg:hidden"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <Link
+              href={`/${currentLocale}/doctor/patients`}
+              aria-label={t("backAria")}
+              className="text-primary hover:bg-primary-soft p-1.5 rounded-lg transition-colors hidden lg:inline-flex"
+            >
               <ArrowLeft className="h-5 w-5" />
             </Link>
-            <div>
-              <p className="font-bold">Mike Jame</p>
-              <p className="text-xs text-muted-foreground">Patient MD-12345</p>
+            <div className="min-w-0">
+              <p className="font-bold truncate">Mike Jame</p>
+              <p className="text-xs text-muted-foreground truncate">
+                {t("patientWithCode", { code: "MD-12345" })}
+              </p>
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-5 space-y-5 bg-muted/5">
+          {/* Message list */}
+          <div className="flex-1 overflow-y-auto overscroll-contain p-3 sm:p-5 space-y-4 sm:space-y-5 bg-muted/5">
             {messages.length === 0 && (
-              <p className="text-center text-sm text-muted-foreground mt-10">No messages yet.</p>
+              <p className="text-center text-sm text-muted-foreground mt-10">{t("empty")}</p>
             )}
             {messages.map((m) => {
               const isMe = m.senderId === DOCTOR_ID;
               return (
-                <div key={m.id} className={cn("flex gap-3", isMe && "flex-row-reverse")}>
-                  <span className={cn("grid h-9 w-9 shrink-0 place-items-center rounded-full", isMe ? "bg-indigo-100 text-indigo-600" : "bg-primary/20 text-primary")}>
-                    {isMe ? <Stethoscope className="h-5 w-5" /> : <User className="h-5 w-5" />}
+                <div key={m.id} className={cn("flex gap-2 sm:gap-3", isMe && "flex-row-reverse")}>
+                  <span
+                    className={cn(
+                      "grid h-8 w-8 sm:h-9 sm:w-9 shrink-0 place-items-center rounded-full",
+                      isMe ? "bg-indigo-100 text-indigo-600" : "bg-primary/20 text-primary"
+                    )}
+                  >
+                    {isMe ? <Stethoscope className="h-4 w-4 sm:h-5 sm:w-5" /> : <User className="h-4 w-4 sm:h-5 sm:w-5" />}
                   </span>
-                  <div className={cn("max-w-[80%]", isMe && "text-right")}>
-                    <p className={cn("rounded-xl px-4 py-3 text-left text-sm leading-relaxed inline-block", isMe ? "bg-indigo-600 text-white" : "bg-muted text-foreground border")}>
+                  <div className={cn("max-w-[85%] sm:max-w-[80%]", isMe && "text-right")}>
+                    <p
+                      className={cn(
+                        "rounded-xl px-3 sm:px-4 py-2 sm:py-3 text-left text-sm leading-relaxed inline-block break-words",
+                        isMe ? "bg-indigo-600 text-white" : "bg-muted text-foreground border"
+                      )}
+                    >
                       {m.content}
                     </p>
                   </div>
@@ -125,15 +193,24 @@ export default function DoctorMessages() {
             <div ref={endRef} />
           </div>
 
-          <form onSubmit={sendMessage} className="border-t p-4 shrink-0 bg-card flex gap-2">
+          {/* Composer — sticky bottom, respects safe-area on iOS */}
+          <form
+            onSubmit={sendMessage}
+            className="border-t p-2 sm:p-4 shrink-0 bg-card flex gap-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]"
+          >
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Type a message to the patient..."
+              placeholder={t("placeholder")}
               disabled={isSending}
-              className="flex-1 rounded-lg border bg-card px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/50"
+              // 16px prevents iOS auto-zoom on focus
+              className="flex-1 min-w-0 rounded-lg border bg-card px-3 py-2 text-base sm:text-sm outline-none focus:ring-2 focus:ring-indigo-500/50"
             />
-            <button type="submit" disabled={isSending} className="grid w-10 place-items-center rounded-lg bg-indigo-600 text-white disabled:opacity-50 hover:bg-indigo-700 transition-colors">
+            <button
+              type="submit"
+              disabled={isSending}
+              className="grid w-10 h-10 shrink-0 place-items-center rounded-lg bg-indigo-600 text-white disabled:opacity-50 hover:bg-indigo-700 transition-colors"
+            >
               <Send className="h-4 w-4" />
             </button>
           </form>

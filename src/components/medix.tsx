@@ -224,7 +224,7 @@ export function PatientShell({
 
 const doctorNav = [
   { to: "/doctor", labelKey: "dashboard", icon: LayoutGrid },
-  { to: "/doctor/patients", labelKey: "patients", icon: Users },
+  { to: "/doctor/patient", labelKey: "patients", icon: Users },
   { to: "/doctor/messages", labelKey: "messages", icon: MessageSquare },
   { to: "/doctor/add-patient", labelKey: "addPatient", icon: UserPlus },
   { to: "/doctor/appointments", labelKey: "appointments", icon: Calendar },

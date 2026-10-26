@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { ArrowLeft, Send, User, Stethoscope } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { PatientShell } from "@/components/medix";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -19,6 +21,10 @@ type Message = {
 };
 
 export default function PatientMessages() {
+  const t = useTranslations("Messages");
+  const pathname = usePathname();
+  const currentLocale = pathname.split("/")[1] || "ru";
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
@@ -58,7 +64,7 @@ export default function PatientMessages() {
       setInput("");
       fetchMessages();
     } catch (error) {
-      toast.error("Failed to send message");
+      toast.error(t("sendFailed"));
     } finally {
       setIsSending(false);
     }
@@ -68,18 +74,18 @@ export default function PatientMessages() {
     <PatientShell>
       <div className="border rounded-xl bg-card mx-auto flex h-[calc(100vh-9rem)] max-w-3xl flex-col shadow-sm overflow-hidden">
         <div className="flex items-center gap-3 border-b p-4 shrink-0 bg-card z-10">
-          <Link href="/" className="text-primary hover:bg-primary-soft p-1.5 rounded-lg transition-colors">
+          <Link href={`/${currentLocale}`} className="text-primary hover:bg-primary-soft p-1.5 rounded-lg transition-colors">
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div>
-            <p className="font-bold">Messages with Doctor</p>
-            <p className="text-xs text-muted-foreground">Direct secure channel</p>
+            <p className="font-bold">{t("title")}</p>
+            <p className="text-xs text-muted-foreground">{t("subtitle")}</p>
           </div>
         </div>
 
         <div className="flex-1 overflow-y-auto p-5 space-y-5 bg-muted/5">
           {messages.length === 0 && (
-            <p className="text-center text-sm text-muted-foreground mt-10">No messages yet. Send a message to your doctor.</p>
+            <p className="text-center text-sm text-muted-foreground mt-10">{t("empty")}</p>
           )}
           {messages.map((m) => {
             const isMe = m.senderId === PATIENT_ID;
@@ -103,7 +109,7 @@ export default function PatientMessages() {
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Type a message to your doctor..."
+            placeholder={t("placeholder")}
             disabled={isSending}
             className="flex-1 rounded-lg border bg-card px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/50"
           />
