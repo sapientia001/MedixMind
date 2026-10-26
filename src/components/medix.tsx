@@ -71,18 +71,19 @@ export function LanguageSwitcher() {
 
 function NavLinks({ items, onClick }: { items: any[], onClick?: () => void }) {
   const pathname = usePathname();
-  const t = useTranslations("Nav");
+  const tNav = useTranslations("Nav");
+  const tAdmin = useTranslations("Admin");
   const currentLocale = pathname.split("/")[1] || "ru";
   
   return (
     <>
-      {items.map(({ to, labelKey, label, icon: Icon, ...rest }) => {
+      {items.map(({ to, labelKey, adminKey, icon: Icon, ...rest }) => {
         const finalTo = to === "/" ? `/${currentLocale}` : to;
         const isActive = pathname === finalTo;
-        const displayLabel = labelKey ? t(labelKey) : label;
+        const displayLabel = adminKey ? tAdmin(adminKey) : labelKey ? tNav(labelKey) : "";
         
         return (
-          <Link key={displayLabel} href={finalTo} onClick={onClick} className={cn(
+          <Link key={finalTo + displayLabel} href={finalTo} onClick={onClick} className={cn(
             "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors",
             isActive ? "bg-primary-soft text-primary font-bold" : "text-muted-foreground hover:bg-muted"
           )}>
@@ -100,9 +101,23 @@ function NavLinks({ items, onClick }: { items: any[], onClick?: () => void }) {
   );
 }
 
-export function Logo({ light, href = "/", hideTextMobile }: { light?: boolean; href?: string; hideTextMobile?: boolean }) {
+export function Logo({ 
+  light, 
+  href, 
+  hideTextMobile 
+}: { 
+  light?: boolean; 
+  href?: string; 
+  hideTextMobile?: boolean 
+}) {
+  const pathname = usePathname();
+  const currentLocale = pathname.split("/")[1] || "ru";
+  
+  // Default to the current locale root if no href is provided
+  const finalHref = href || `/${currentLocale}`;
+
   return (
-    <Link href={href} className={cn("flex items-center gap-2 font-bold text-lg", light ? "text-white" : "text-foreground")}>
+    <Link href={finalHref} className={cn("flex items-center gap-2 font-bold text-lg", light ? "text-white" : "text-foreground")}>
       <span className="grid h-8 w-8 place-items-center rounded-md bg-primary text-primary-foreground shadow-sm shrink-0">
         <Cross className="h-5 w-5" strokeWidth={3} />
       </span>
@@ -114,7 +129,7 @@ export function Logo({ light, href = "/", hideTextMobile }: { light?: boolean; h
 const patientNav = [
   { to: "/", labelKey: "home", icon: Home },
   { to: "/chat", labelKey: "checkin", icon: MessageSquareText },
-  { to: "/messages", label: "Messages", icon: MessageSquare },
+  { to: "/messages", labelKey: "messages", icon: MessageSquare },
   { to: "/forms", labelKey: "forms", icon: ClipboardList },
   { to: "/history", labelKey: "history", icon: History },
   { to: "/wearable", labelKey: "devices", icon: Watch },
@@ -131,7 +146,9 @@ export function PatientShell({
 }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const router = useRouter();
-  const currentLocale = usePathname().split("/")[1] || "ru";
+  const pathname = usePathname();
+  const currentLocale = pathname.split("/")[1] || "ru";
+  const t = useTranslations("Nav");
 
   const handleLogout = () => {
     router.push(`/${currentLocale}/login`);
@@ -149,7 +166,7 @@ export function PatientShell({
             {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
           <div data-onboarding-id="patient-header">
-            <Logo hideTextMobile />
+            <Logo href={`/${currentLocale}`} hideTextMobile />
           </div>
         </div>
 
@@ -163,11 +180,11 @@ export function PatientShell({
                 {doctorName && (
                   <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
                     <Stethoscope className="h-4 w-4 text-primary" />
-                    <span>Dr. {doctorName}</span>
+                    <span>{t("dr")} {doctorName}</span>
                   </div>
                 )}
                 <button onClick={handleLogout} className="flex items-center gap-1 text-xs font-semibold text-destructive hover:underline">
-                  <LogOut className="h-4 w-4" /> Logout
+                  <LogOut className="h-4 w-4" /> {t("logout")}
                 </button>
               </div>
             </>
@@ -190,7 +207,7 @@ export function PatientShell({
               </Suspense>
               <div className="mt-auto pt-4 border-t">
                  <button onClick={handleLogout} className="flex w-full items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium text-destructive hover:bg-destructive/10">
-                    <LogOut className="h-5 w-5" /> Logout
+                    <LogOut className="h-5 w-5" /> {t("logout")}
                  </button>
               </div>
             </nav>
@@ -207,9 +224,9 @@ export function PatientShell({
 
 const doctorNav = [
   { to: "/doctor", labelKey: "dashboard", icon: LayoutGrid },
-  { to: "/doctor/patient", labelKey: "patients", icon: Users },
-  { to: "/doctor/messages", label: "Messages", icon: MessageSquare },
-  { to: "/doctor/add-patient", label: "Add Patient", icon: UserPlus },
+  { to: "/doctor/patients", labelKey: "patients", icon: Users },
+  { to: "/doctor/messages", labelKey: "messages", icon: MessageSquare },
+  { to: "/doctor/add-patient", labelKey: "addPatient", icon: UserPlus },
   { to: "/doctor/appointments", labelKey: "appointments", icon: Calendar },
   { to: "/doctor/alerts", labelKey: "alerts", icon: TriangleAlert, badge: 3 },
 ];
@@ -217,7 +234,9 @@ const doctorNav = [
 export function DoctorShell({ children }: { children: ReactNode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const router = useRouter();
-  const currentLocale = usePathname().split("/")[1] || "ru";
+  const pathname = usePathname();
+  const currentLocale = pathname.split("/")[1] || "ru";
+  const t = useTranslations("Nav");
 
   const handleLogout = () => {
     router.push(`/${currentLocale}/login`);
@@ -233,7 +252,7 @@ export function DoctorShell({ children }: { children: ReactNode }) {
           </Suspense>
         </nav>
         <button onClick={handleLogout} className="mt-auto flex items-center gap-2 text-xs font-medium text-slate-400 hover:text-white transition-colors">
-          <LogOut className="h-4 w-4" /> Logout
+          <LogOut className="h-4 w-4" /> {t("logout")}
         </button>
       </aside>
 
@@ -269,7 +288,7 @@ export function DoctorShell({ children }: { children: ReactNode }) {
                 <NavLinks items={doctorNav} onClick={() => setIsMobileMenuOpen(false)} />
               </Suspense>
               <button onClick={handleLogout} className="mt-auto flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium text-slate-400 hover:text-white hover:bg-white/5 transition-colors">
-                <LogOut className="h-5 w-5" /> Logout
+                <LogOut className="h-5 w-5" /> {t("logout")}
               </button>
             </nav>
           </div>
@@ -285,14 +304,17 @@ export function DoctorShell({ children }: { children: ReactNode }) {
 
 // --- ADMIN SHELL ---
 const adminNav = [
-  { to: "/admin", label: "Infrastructure", icon: Server },
-  { to: "/admin/users", label: "User Management", icon: Users },
-  { to: "/admin/logs", label: "System Logs", icon: Database },
+  { to: "/admin", adminKey: "title", icon: Server },
+  { to: "/admin/users", adminKey: "userManagement", icon: Users },
+  { to: "/admin/logs", adminKey: "auditLogs", icon: Database },
 ];
 
 export function AdminShell({ children }: { children: ReactNode }) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const router = useRouter();
-  const currentLocale = usePathname().split("/")[1] || "ru";
+  const pathname = usePathname();
+  const currentLocale = pathname.split("/")[1] || "ru";
+  const tAdmin = useTranslations("Admin");
 
   const handleLogout = () => {
     router.push(`/${currentLocale}/login`);
@@ -309,18 +331,9 @@ export function AdminShell({ children }: { children: ReactNode }) {
         </div>
         
         <nav className="flex flex-col gap-1.5">
-          {adminNav.map(({ to, label, icon: Icon }) => {
-            const isActive = usePathname() === to;
-            return (
-              <Link key={label} href={to} className={cn(
-                "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors",
-                isActive ? "bg-indigo-500/20 text-indigo-300 font-bold" : "text-slate-400 hover:bg-white/5 hover:text-white"
-              )}>
-                <Icon className="h-5 w-5" /> 
-                {label}
-              </Link>
-            );
-          })}
+          <Suspense fallback={<div className="h-10 w-full animate-pulse bg-white/10 rounded-xl mb-1" />}>
+            <NavLinks items={adminNav} />
+          </Suspense>
         </nav>
         
         <button onClick={handleLogout} className="mt-auto flex items-center gap-2 text-xs font-medium text-slate-500 hover:text-white transition-colors">
@@ -330,12 +343,37 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
       <div className="min-w-0 flex-1 bg-[#f4f7fb] flex flex-col md:pl-[260px]">
         <header className="flex h-[72px] items-center justify-between bg-white px-4 md:px-8 border-b">
-          <h1 className="text-lg font-bold text-foreground hidden md:block">System Administration</h1>
+          <div className="flex items-center gap-3">
+            <button 
+              className="md:hidden p-1 -ml-1 text-foreground"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+            <h1 className="text-lg font-bold text-foreground hidden md:block">{tAdmin("title")}</h1>
+            <span className="md:hidden font-bold text-slate-900 flex items-center gap-2">
+               <Server className="h-5 w-5 text-indigo-500" /> MedixAdmin
+            </span>
+          </div>
+          
           <div className="ml-auto flex items-center gap-5">
             <LanguageSwitcher /> 
             <Avatar initials="AD" />
           </div>
         </header>
+
+        {isMobileMenuOpen && (
+          <div className="fixed inset-0 top-[72px] z-30 bg-black/50 md:hidden" onClick={() => setIsMobileMenuOpen(false)}>
+            <nav className="w-[260px] h-full bg-[#111827] p-5 flex flex-col gap-1 shadow-xl" onClick={e => e.stopPropagation()}>
+              <Suspense fallback={<div className="h-10 w-full animate-pulse bg-white/10 rounded-xl mb-1" />}>
+                <NavLinks items={adminNav} onClick={() => setIsMobileMenuOpen(false)} />
+              </Suspense>
+              <button onClick={handleLogout} className="mt-auto flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium text-slate-400 hover:text-white hover:bg-white/5 transition-colors">
+                <LogOut className="h-5 w-5" /> Exit Admin
+              </button>
+            </nav>
+          </div>
+        )}
         
         <main className="w-full max-w-7xl mx-auto flex-1 p-4 md:p-8">
           {children}

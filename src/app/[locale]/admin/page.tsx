@@ -13,8 +13,7 @@ import {
   BookOpen, 
   UploadCloud,
   Lock,
-  Globe,
-  ArrowRight
+  Globe
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -33,16 +32,22 @@ export default function AdminInfrastructure() {
             <p className="text-sm text-muted-foreground">Manage your clinical AI deployment and monitor performance.</p>
           </div>
           
-          <div className="flex bg-muted rounded-lg p-1 shrink-0">
+          <div className="flex w-full md:w-auto bg-muted rounded-lg p-1 shrink-0 border border-border/50">
             <button
               onClick={() => setMode("cloud")}
-              className={cn("flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-md transition-all", mode === "cloud" ? "bg-white shadow-sm text-primary" : "text-muted-foreground hover:text-foreground")}
+              className={cn(
+                "flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-md transition-all", 
+                mode === "cloud" ? "bg-white shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"
+              )}
             >
               <Cloud className="h-4 w-4" /> Cloud API
             </button>
             <button
               onClick={() => setMode("local")}
-              className={cn("flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-md transition-all", mode === "local" ? "bg-white shadow-sm text-primary" : "text-muted-foreground hover:text-foreground")}
+              className={cn(
+                "flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-md transition-all", 
+                mode === "local" ? "bg-white shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"
+              )}
             >
               <Server className="h-4 w-4" /> Local Server
             </button>
@@ -84,7 +89,7 @@ export default function AdminInfrastructure() {
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4">
             
             {/* UPLOAD MODEL SECTION */}
-            <div className="rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 p-8 text-center">
+            <div className="rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 p-6 md:p-8 text-center">
               <UploadCloud className="h-10 w-10 text-primary mx-auto mb-3 opacity-70" />
               <h3 className="text-lg font-bold text-foreground">Upload Local Model Weights</h3>
               <p className="text-sm text-muted-foreground max-w-md mx-auto mt-1 mb-4">
@@ -92,7 +97,7 @@ export default function AdminInfrastructure() {
               </p>
               <button 
                 onClick={() => toast.success("Model upload simulated. GPU provisioning started.")}
-                className="rounded-lg bg-primary px-6 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
+                className="w-full md:w-auto rounded-lg bg-primary px-6 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
               >
                 Select Model File (.safetensors)
               </button>
@@ -104,26 +109,24 @@ export default function AdminInfrastructure() {
                 <Lock className="h-4 w-4" /> Secure Network Bridge (VPN Tunnel)
               </h3>
               
-              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-6 md:gap-4">
                 {/* Public Gateway */}
                 <div className="flex flex-col items-center text-center w-full md:w-1/3">
                   <div className="grid h-12 w-12 place-items-center rounded-full bg-white border border-indigo-200 shadow-sm mb-2">
                     <Globe className="h-6 w-6 text-indigo-500" />
                   </div>
                   <p className="text-xs font-bold text-indigo-900">Public Gateway</p>
-                  <p className="text-[10px] text-indigo-700">Yandex Cloud / Selectel</p>
-                  <p className="text-[10px] text-success font-semibold mt-1">Online</p>
+                  <p className="text-[10px] text-indigo-700">Yandex Cloud</p>
                 </div>
 
                 {/* Connection Line */}
                 <div className="flex flex-col items-center w-full md:w-1/3">
-                  <div className="flex items-center gap-2 text-indigo-500">
+                  <div className="flex items-center gap-2 text-indigo-500 rotate-90 md:rotate-0 my-4 md:my-0">
                     <div className="h-0.5 w-12 bg-indigo-300"></div>
                     <Lock className="h-4 w-4" />
                     <div className="h-0.5 w-12 bg-indigo-300"></div>
                   </div>
-                  <p className="text-[10px] font-bold text-indigo-600 mt-1">Encrypted WireGuard Tunnel</p>
-                  <p className="text-[10px] text-indigo-400">AES-256</p>
+                  <p className="text-[10px] font-bold text-indigo-600 mt-1">Encrypted WireGuard</p>
                 </div>
 
                 {/* Local Node */}
@@ -133,20 +136,12 @@ export default function AdminInfrastructure() {
                   </div>
                   <p className="text-xs font-bold text-indigo-900">Hospital Local Node</p>
                   <p className="text-[10px] text-indigo-700">Private GPU Server</p>
-                  <p className="text-[10px] text-success font-semibold mt-1">Connected</p>
                 </div>
-              </div>
-
-              <div className="mt-4 rounded-md bg-indigo-100 p-3 text-[11px] text-indigo-800 flex items-start gap-2">
-                <ShieldAlert className="h-4 w-4 shrink-0 mt-0.5" />
-                <p>
-                  <strong>Data Security:</strong> The Hospital Local Node has no public IP address. Patient requests from across Russia are securely routed through the Public Gateway and tunneled directly to the hospital's private network.
-                </p>
               </div>
             </div>
 
             {/* SYSTEM METRICS */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="rounded-xl border bg-white p-5 shadow-sm">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-xs font-bold text-muted-foreground">Perplexity (PPL)</p>
@@ -174,7 +169,7 @@ export default function AdminInfrastructure() {
                 <p className="text-[10px] text-muted-foreground mt-1">Tokens per second.</p>
               </div>
 
-              <div className="rounded-xl bg-white p-5 shadow-sm border">
+              <div className="rounded-xl border bg-white p-5 shadow-sm">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-xs font-bold text-muted-foreground">VRAM Footprint</p>
                   <HardDrive className="h-4 w-4 text-primary" />
@@ -187,7 +182,7 @@ export default function AdminInfrastructure() {
             </div>
 
             {/* MODEL SPECS AND HALLUCINATION */}
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="rounded-xl border bg-white p-6 shadow-sm">
                 <h3 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
                   <Cpu className="h-4 w-4 text-primary" /> Model Specification

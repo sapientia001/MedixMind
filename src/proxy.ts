@@ -7,12 +7,13 @@ const intlMiddleware = createMiddleware(routing);
 export default function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // ONLY redirect the absolute root (localhost:3000/) to login
+  // If user goes to localhost:3000 (the absolute root), send them to login.
   if (pathname === '/') {
     return NextResponse.redirect(new URL(`/ru/login`, request.url));
   }
 
-  // Allow /en, /ru, /en/doctor, etc., to pass through normally
+  // For /ru, /ru/doctor, /en, etc., just let the standard app router handle it.
+  // No redirects here.
   return intlMiddleware(request);
 }
 

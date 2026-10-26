@@ -24,7 +24,9 @@ export default function AdminLogs() {
           <ul className="divide-y">
             {mockLogs.map((log) => (
               <li key={log.id} className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 hover:bg-muted/10 transition-colors">
-                <div className="flex items-center gap-4 flex-1">
+                
+                {/* Log Icon & Details */}
+                <div className="flex items-start sm:items-center gap-4 flex-1">
                   <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${
                     log.type === "critical" ? "bg-destructive/10 text-destructive" :
                     log.type === "success" ? "bg-success/10 text-success" :
@@ -42,10 +44,12 @@ export default function AdminLogs() {
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-4 text-xs text-muted-foreground sm:ml-auto">
-                  <span className="font-medium text-foreground">{log.user}</span>
-                  <span className="w-24 text-right">{log.time}</span>
+                {/* User & Time (Stacks on mobile) */}
+                <div className="flex items-center justify-between sm:justify-end gap-4 text-xs text-muted-foreground sm:ml-auto w-full sm:w-auto pl-14 sm:pl-0">
+                  <span className="font-medium text-foreground bg-muted/50 px-2 py-1 rounded-md">{log.user}</span>
+                  <span className="w-20 text-right shrink-0">{log.time}</span>
                 </div>
+
               </li>
             ))}
           </ul>
