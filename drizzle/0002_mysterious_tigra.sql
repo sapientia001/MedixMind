@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD COLUMN "medical_history" text;

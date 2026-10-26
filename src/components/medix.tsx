@@ -3,48 +3,91 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   Home, MessageSquareText, ClipboardList, History, Watch, User,
-  LayoutGrid, Users, TriangleAlert, FileText, Bell, Cross, ArrowLeft, Globe
+  LayoutGrid, Users, TriangleAlert, Bell, Cross, ArrowLeft, Calendar, LogOut, Stethoscope, Menu, X,
+  Server, Database, UserPlus, MessageSquare
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// --- Language Switcher Component ---
+const RussianFlag = () => (
+  <svg viewBox="0 0 640 480" className="h-4 w-6 rounded-sm object-cover shadow-sm border border-gray-300">
+    <path fill="#fff" d="M0 0h640v160H0z"/>
+    <path fill="#0039a6" d="M0 160h640v160H0z"/>
+    <path fill="#d52b1e" d="M0 320h640v160H0z"/>
+  </svg>
+);
+
+const BritishFlag = () => (
+  <svg viewBox="0 0 640 480" className="h-4 w-6 rounded-sm object-cover shadow-sm border border-gray-300">
+    <path fill="#012169" d="M0 0h640v480H0z"/>
+    <path fill="#FFF" d="m75 0 244 181L562 0h78v62L400 241l240 178v61h-80L320 301 81 480H0v-60l239-178L0 64V0h75z"/>
+    <path fill="#C8102E" d="m424 281 216 159v40L369 281h55zm-184 20 6 35L54 480H0l240-179zM640 0v3L391 191l2-44L590 0h50zM0 0l239 176h-60L0 42V0z"/>
+    <path fill="#FFF" d="M241 0v480h160V0H241zM0 160v160h640V160H0z"/>
+    <path fill="#C8102E" d="M0 193v96h640v-96H0zM273 0v480h96V0h-96z"/>
+  </svg>
+);
+
 export function LanguageSwitcher() {
   const pathname = usePathname();
   const router = useRouter();
-  const currentLocale = pathname.split("/")[1] || "en";
+  const currentLocale = pathname.split("/")[1] || "ru";
 
-  const toggleLanguage = () => {
-    const newLocale = currentLocale === "en" ? "ru" : "en";
+  const switchLanguage = (newLocale: string) => {
+    if (newLocale === currentLocale) return;
     const newPath = pathname.replace(`/${currentLocale}`, `/${newLocale}`);
     router.push(newPath);
   };
 
   return (
-    <button
-      onClick={toggleLanguage}
-      className="flex items-center gap-2 rounded-lg border bg-white px-3 py-1.5 text-sm font-semibold text-primary hover:bg-primary-soft transition-colors shadow-sm"
-    >
-      <Globe className="h-4 w-4" />
-      {currentLocale === "en" ? "RU" : "EN"}
-    </button>
+    <div className="flex items-center gap-1.5 rounded-lg border bg-white p-1 shadow-sm">
+      {currentLocale === "ru" ? <RussianFlag /> : <BritishFlag />}
+      
+      <div className="flex items-center bg-muted rounded-md p-0.5 ml-1">
+        <button
+          onClick={() => switchLanguage("ru")}
+          className={cn(
+            "px-2 py-1 text-[10px] sm:text-xs font-bold rounded-sm transition-all",
+            currentLocale === "ru" ? "bg-white text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          RU
+        </button>
+        <button
+          onClick={() => switchLanguage("en")}
+          className={cn(
+            "px-2 py-1 text-[10px] sm:text-xs font-bold rounded-sm transition-all",
+            currentLocale === "en" ? "bg-white text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          EN
+        </button>
+      </div>
+    </div>
   );
 }
 
-// --- Isolated Navigation Links (to fix usePathname Suspense error) ---
-function NavLinks({ items, baseClass, activeClass }: { items: any[], baseClass: string, activeClass: string }) {
+function NavLinks({ items, onClick }: { items: any[], onClick?: () => void }) {
   const pathname = usePathname();
+  const t = useTranslations("Nav");
+  const currentLocale = pathname.split("/")[1] || "ru";
   
   return (
     <>
-      {items.map(({ to, label, icon: Icon, ...rest }) => {
-        const isActive = pathname === to;
+      {items.map(({ to, labelKey, label, icon: Icon, ...rest }) => {
+        const finalTo = to === "/" ? `/${currentLocale}` : to;
+        const isActive = pathname === finalTo;
+        const displayLabel = labelKey ? t(labelKey) : label;
+        
         return (
-          <Link key={label} href={to} className={cn(baseClass, isActive && activeClass)}>
+          <Link key={displayLabel} href={finalTo} onClick={onClick} className={cn(
+            "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors",
+            isActive ? "bg-primary-soft text-primary font-bold" : "text-muted-foreground hover:bg-muted"
+          )}>
             <Icon className="h-5 w-5" /> 
-            {label}
+            {displayLabel}
             {"badge" in rest && (
               <span className="ml-auto grid h-5 w-5 place-items-center rounded-full bg-destructive text-[11px] font-bold text-white">
                 {rest.badge}
@@ -57,51 +100,104 @@ function NavLinks({ items, baseClass, activeClass }: { items: any[], baseClass: 
   );
 }
 
-export function Logo({ light }: { light?: boolean }) {
+export function Logo({ light, href = "/", hideTextMobile }: { light?: boolean; href?: string; hideTextMobile?: boolean }) {
   return (
-    <Link href="/" className={cn("flex items-center gap-2 font-bold text-lg", light ? "text-white" : "text-foreground")}>
-      <span className="grid h-8 w-8 place-items-center rounded-md bg-primary text-primary-foreground shadow-sm">
+    <Link href={href} className={cn("flex items-center gap-2 font-bold text-lg", light ? "text-white" : "text-foreground")}>
+      <span className="grid h-8 w-8 place-items-center rounded-md bg-primary text-primary-foreground shadow-sm shrink-0">
         <Cross className="h-5 w-5" strokeWidth={3} />
       </span>
-      MedixDeck
+      <span className={hideTextMobile ? "hidden sm:inline" : ""}>MedixMind</span>
     </Link>
   );
 }
 
 const patientNav = [
-  { to: "/", label: "Home", icon: Home },
-  { to: "/chat", label: "Check-in", icon: MessageSquareText },
-  { to: "/forms", label: "Forms", icon: ClipboardList },
-  { to: "/history", label: "History", icon: History },
-  { to: "/wearable", label: "Devices", icon: Watch },
-  { to: "/doctor", label: "Doctor view", icon: User },
+  { to: "/", labelKey: "home", icon: Home },
+  { to: "/chat", labelKey: "checkin", icon: MessageSquareText },
+  { to: "/messages", label: "Messages", icon: MessageSquare },
+  { to: "/forms", labelKey: "forms", icon: ClipboardList },
+  { to: "/history", labelKey: "history", icon: History },
+  { to: "/wearable", labelKey: "devices", icon: Watch },
 ];
 
-export function PatientShell({ children, right }: { children: ReactNode; right?: ReactNode }) {
+export function PatientShell({ 
+  children, 
+  right, 
+  doctorName 
+}: { 
+  children: ReactNode; 
+  right?: ReactNode; 
+  doctorName?: string 
+}) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const router = useRouter();
+  const currentLocale = usePathname().split("/")[1] || "ru";
+
+  const handleLogout = () => {
+    router.push(`/${currentLocale}/login`);
+  };
+
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-20 flex h-[72px] items-center justify-between border-b bg-card px-6">
-        <Logo />
-        <div className="flex items-center gap-4">
-          <LanguageSwitcher />
-          {right ?? (
-            <div className="flex items-center gap-2 text-sm font-semibold">
-              <Avatar initials="S" /> Sarah
-            </div>
+    <div className="min-h-screen bg-background flex flex-col">
+      <header className="fixed top-0 left-0 right-0 z-50 flex h-[72px] items-center justify-between border-b bg-card px-4 md:px-6">
+        
+        <div className="flex items-center gap-3">
+          <button 
+            className="md:hidden p-1 -ml-1 text-foreground"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
+          <div data-onboarding-id="patient-header">
+            <Logo hideTextMobile />
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 md:gap-4">
+          {right ? (
+            right
+          ) : (
+            <>
+              <LanguageSwitcher />
+              <div className="hidden md:flex items-center gap-3 border-l pl-4">
+                {doctorName && (
+                  <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+                    <Stethoscope className="h-4 w-4 text-primary" />
+                    <span>Dr. {doctorName}</span>
+                  </div>
+                )}
+                <button onClick={handleLogout} className="flex items-center gap-1 text-xs font-semibold text-destructive hover:underline">
+                  <LogOut className="h-4 w-4" /> Logout
+                </button>
+              </div>
+            </>
           )}
         </div>
       </header>
-      <div className="flex">
-        <nav className="sticky top-[72px] hidden h-[calc(100vh-72px)] w-[240px] shrink-0 flex-col gap-1 border-r bg-card p-4 md:flex">
+      
+      <div className="flex flex-1 relative pt-[72px]">
+        <nav className="fixed top-[72px] bottom-0 left-0 hidden w-[240px] shrink-0 flex-col gap-1 border-r bg-card p-4 md:flex">
           <Suspense fallback={<div className="h-10 w-full animate-pulse bg-muted rounded-xl mb-1" />}>
-            <NavLinks 
-              items={patientNav} 
-              baseClass="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors text-muted-foreground hover:bg-muted" 
-              activeClass="bg-primary-soft text-primary font-bold" 
-            />
+            <NavLinks items={patientNav} />
           </Suspense>
         </nav>
-        <main className="min-w-0 flex-1 p-4 pb-24 md:p-8">
+
+        {isMobileMenuOpen && (
+          <div className="fixed inset-0 top-[72px] z-40 bg-black/50 md:hidden" onClick={() => setIsMobileMenuOpen(false)}>
+            <nav className="w-[250px] h-full bg-card p-4 flex flex-col gap-1 shadow-xl" onClick={e => e.stopPropagation()}>
+              <Suspense fallback={<div className="h-10 w-full animate-pulse bg-muted rounded-xl mb-1" />}>
+                <NavLinks items={patientNav} onClick={() => setIsMobileMenuOpen(false)} />
+              </Suspense>
+              <div className="mt-auto pt-4 border-t">
+                 <button onClick={handleLogout} className="flex w-full items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium text-destructive hover:bg-destructive/10">
+                    <LogOut className="h-5 w-5" /> Logout
+                 </button>
+              </div>
+            </nav>
+          </div>
+        )}
+
+        <main className="w-full max-w-7xl mx-auto p-4 md:p-8 md:pl-[272px]">
           {children}
         </main>
       </div>
@@ -110,47 +206,138 @@ export function PatientShell({ children, right }: { children: ReactNode; right?:
 }
 
 const doctorNav = [
-  { to: "/doctor", label: "Dashboard", icon: LayoutGrid },
-  { to: "/doctor/patient", label: "Patients", icon: Users },
-  { to: "/doctor/alerts", label: "Alerts", icon: TriangleAlert, badge: 3 },
-  { to: "/doctor/patient", label: "Prescriptions", icon: FileText },
+  { to: "/doctor", labelKey: "dashboard", icon: LayoutGrid },
+  { to: "/doctor/patient", labelKey: "patients", icon: Users },
+  { to: "/doctor/messages", label: "Messages", icon: MessageSquare },
+  { to: "/doctor/add-patient", label: "Add Patient", icon: UserPlus },
+  { to: "/doctor/appointments", labelKey: "appointments", icon: Calendar },
+  { to: "/doctor/alerts", labelKey: "alerts", icon: TriangleAlert, badge: 3 },
 ];
 
 export function DoctorShell({ children }: { children: ReactNode }) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const router = useRouter();
+  const currentLocale = usePathname().split("/")[1] || "ru";
+
+  const handleLogout = () => {
+    router.push(`/${currentLocale}/login`);
+  };
+
   return (
-    <div className="flex min-h-screen bg-background">
-      <aside className="sticky top-0 hidden h-screen w-[260px] shrink-0 flex-col bg-[#0c2340] p-5 md:flex">
-        <Logo light />
-        
+    <div className="flex min-h-screen bg-background w-full">
+      <aside className="fixed top-0 bottom-0 left-0 hidden h-screen w-[260px] shrink-0 flex-col bg-[#0c2340] p-5 md:flex z-40">
+        <Logo light href={`/${currentLocale}/doctor`} />
         <nav className="mt-10 flex flex-col gap-1.5">
           <Suspense fallback={<div className="h-10 w-full animate-pulse bg-white/10 rounded-xl mb-1" />}>
-            <NavLinks 
-              items={doctorNav} 
-              baseClass="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors text-slate-300 hover:bg-white/5 hover:text-white" 
-              activeClass="bg-white/10 text-white font-bold" 
-            />
+            <NavLinks items={doctorNav} />
           </Suspense>
         </nav>
-        
-        <Link href="/" className="mt-auto flex items-center gap-2 text-xs font-medium text-slate-400 hover:text-white transition-colors">
-          <ArrowLeft className="h-4 w-4" /> Patient app
-        </Link>
+        <button onClick={handleLogout} className="mt-auto flex items-center gap-2 text-xs font-medium text-slate-400 hover:text-white transition-colors">
+          <LogOut className="h-4 w-4" /> Logout
+        </button>
       </aside>
 
-      <div className="min-w-0 flex-1 bg-[#f4f7fb]">
-        <header className="flex h-[72px] items-center justify-between bg-white px-8 border-b">
-          <div className="md:hidden"><Logo /></div>
-          <div className="ml-auto flex items-center gap-5">
+      <div className="min-w-0 flex-1 bg-[#f4f7fb] flex flex-col md:pl-[260px]">
+        <header className="fixed top-0 right-0 left-0 md:left-[260px] z-40 flex h-[72px] items-center justify-between bg-white px-4 md:px-8 border-b">
+          
+          <div className="flex items-center gap-3">
+             <button 
+                className="md:hidden p-1 -ml-1 text-foreground"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              >
+                {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              </button>
+              <div className="md:hidden">
+                <Logo href={`/${currentLocale}/doctor`} hideTextMobile />
+              </div>
+          </div>
+          
+          <div className="ml-auto flex items-center gap-3 md:gap-5">
             <LanguageSwitcher /> 
-            <Link href="/doctor/alerts" className="relative text-muted-foreground hover:text-primary transition-colors">
+            <Link href={`/${currentLocale}/doctor/alerts`} className="relative text-muted-foreground hover:text-primary transition-colors">
               <Bell className="h-5 w-5" />
               <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-destructive border-2 border-white" />
             </Link>
             <Avatar initials="DR" />
           </div>
         </header>
+
+        {isMobileMenuOpen && (
+          <div className="fixed inset-0 top-[72px] z-30 bg-black/50 md:hidden" onClick={() => setIsMobileMenuOpen(false)}>
+            <nav className="w-[260px] h-full bg-[#0c2340] p-5 flex flex-col gap-1 shadow-xl" onClick={e => e.stopPropagation()}>
+              <Suspense fallback={<div className="h-10 w-full animate-pulse bg-white/10 rounded-xl mb-1" />}>
+                <NavLinks items={doctorNav} onClick={() => setIsMobileMenuOpen(false)} />
+              </Suspense>
+              <button onClick={handleLogout} className="mt-auto flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium text-slate-400 hover:text-white hover:bg-white/5 transition-colors">
+                <LogOut className="h-5 w-5" /> Logout
+              </button>
+            </nav>
+          </div>
+        )}
         
-        <main className="p-6 md:p-8">
+        <main className="w-full max-w-7xl mx-auto flex-1 p-4 md:p-8 pt-[88px] md:pt-[104px]">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+}
+
+// --- ADMIN SHELL ---
+const adminNav = [
+  { to: "/admin", label: "Infrastructure", icon: Server },
+  { to: "/admin/users", label: "User Management", icon: Users },
+  { to: "/admin/logs", label: "System Logs", icon: Database },
+];
+
+export function AdminShell({ children }: { children: ReactNode }) {
+  const router = useRouter();
+  const currentLocale = usePathname().split("/")[1] || "ru";
+
+  const handleLogout = () => {
+    router.push(`/${currentLocale}/login`);
+  };
+
+  return (
+    <div className="flex min-h-screen bg-background w-full">
+      <aside className="fixed top-0 bottom-0 left-0 hidden h-screen w-[260px] shrink-0 flex-col bg-[#111827] p-5 md:flex z-40">
+        <div className="flex items-center gap-2 font-bold text-lg text-white mb-10">
+          <span className="grid h-8 w-8 place-items-center rounded-md bg-indigo-500 text-white shadow-sm">
+            <Server className="h-5 w-5" />
+          </span>
+          MedixAdmin
+        </div>
+        
+        <nav className="flex flex-col gap-1.5">
+          {adminNav.map(({ to, label, icon: Icon }) => {
+            const isActive = usePathname() === to;
+            return (
+              <Link key={label} href={to} className={cn(
+                "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors",
+                isActive ? "bg-indigo-500/20 text-indigo-300 font-bold" : "text-slate-400 hover:bg-white/5 hover:text-white"
+              )}>
+                <Icon className="h-5 w-5" /> 
+                {label}
+              </Link>
+            );
+          })}
+        </nav>
+        
+        <button onClick={handleLogout} className="mt-auto flex items-center gap-2 text-xs font-medium text-slate-500 hover:text-white transition-colors">
+          <LogOut className="h-4 w-4" /> Exit Admin
+        </button>
+      </aside>
+
+      <div className="min-w-0 flex-1 bg-[#f4f7fb] flex flex-col md:pl-[260px]">
+        <header className="flex h-[72px] items-center justify-between bg-white px-4 md:px-8 border-b">
+          <h1 className="text-lg font-bold text-foreground hidden md:block">System Administration</h1>
+          <div className="ml-auto flex items-center gap-5">
+            <LanguageSwitcher /> 
+            <Avatar initials="AD" />
+          </div>
+        </header>
+        
+        <main className="w-full max-w-7xl mx-auto flex-1 p-4 md:p-8">
           {children}
         </main>
       </div>
@@ -160,7 +347,7 @@ export function DoctorShell({ children }: { children: ReactNode }) {
 
 export function Avatar({ initials, className }: { initials: string; className?: string }) {
   return (
-    <span className={cn("grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary-soft text-xs font-bold text-primary", className)}>
+    <span className={cn("grid h-8 w-8 md:h-9 md:w-9 shrink-0 place-items-center rounded-full bg-primary-soft text-[10px] md:text-xs font-bold text-primary", className)}>
       {initials}
     </span>
   );

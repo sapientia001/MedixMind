@@ -1,155 +1,162 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Cross, ShieldCheck, LockKeyhole, ArrowRight, KeyRound, Stethoscope, User } from "lucide-react";
-import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { Cross, ShieldCheck, Brain, HeartPulse, User, Stethoscope, Server } from "lucide-react";
+import { LoginModal } from "@/components/login-modal";
 
-type Role = "patient" | "doctor";
+type Role = "patient" | "doctor" | "admin";
 
-export default function Login() {
-  const router = useRouter();
-  const [role, setRole] = useState<Role>("doctor");
-  
-  // Doctor state
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  
-  // Patient state
-  const [accessCode, setAccessCode] = useState("");
-  
-  const [loading, setLoading] = useState(false);
+export default function LandingPage() {
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<Role>("patient");
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    
-    // Simulate API authentication
-    setTimeout(() => {
-      setLoading(false);
-      
-      if (role === "doctor") {
-        if (email && password) {
-          toast.success("Doctor authenticated.");
-          router.push("/doctor");
-        }
-      } else {
-        if (accessCode.length > 3) {
-          toast.success("Access code verified. Linking to Doctor.");
-          router.push("/"); // Routes to Patient Dashboard
-        } else {
-          toast.error("Invalid access code.");
-        }
-      }
-    }, 1000);
+  const openLogin = (role: Role) => {
+    setSelectedRole(role);
+    setIsLoginOpen(true);
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col justify-center items-center p-4">
-      {/* Brand Header */}
-      <div className="mb-8 flex flex-col items-center">
-        <span className="grid h-14 w-14 place-items-center rounded-xl bg-primary text-primary-foreground shadow-lg mb-4">
-          <Cross className="h-8 w-8" strokeWidth={3} />
-        </span>
-        <h1 className="text-2xl font-bold text-foreground">MedixDeck</h1>
-        <p className="text-sm text-muted-foreground mt-1">Secure Clinical Portal</p>
+    <div className="min-h-screen w-full relative flex flex-col lg:flex-row bg-[#0a192f] font-sans overflow-hidden">
+      
+      {/* FULL SCREEN BACKGROUND IMAGE - Changed to bg-center for perfect framing */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center opacity-40 lg:opacity-100 lg:left-[30%] lg:w-[70%]"
+        style={{ backgroundImage: "url('/doctor-bg.jpg')" }}
+      ></div>
+
+      {/* DARK GRADIENT OVERLAY */}
+      <div className="absolute inset-0 bg-gradient-to-r from-[#0a192f] via-[#0a192f]/80 to-transparent z-10"></div>
+
+      {/* MOBILE HEADER */}
+      <header className="relative z-30 w-full lg:hidden flex items-center justify-between p-6">
+        <div className="flex items-center gap-2">
+          <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#0ea5e9] text-white">
+            <Cross className="h-5 w-5" strokeWidth={3} />
+          </span>
+          <h1 className="text-xl font-bold text-white">MedixMind</h1>
+        </div>
+        <button 
+          onClick={() => openLogin("patient")}
+          className="rounded-lg bg-[#0ea5e9] px-5 py-2 text-sm font-bold text-white shadow-lg"
+        >
+          Login
+        </button>
+      </header>
+
+      {/* LEFT SIDE - BRANDING */}
+      <div className="relative z-20 w-full lg:w-[50%] flex flex-col justify-center px-6 py-12 lg:p-16 xl:p-24 min-h-[80vh] lg:min-h-screen">
+        <div className="max-w-lg w-full mx-auto lg:mx-0">
+          
+          <div className="hidden lg:flex items-center gap-3 mb-12">
+            <span className="grid h-14 w-14 place-items-center rounded-xl bg-[#0ea5e9] text-white shadow-lg shadow-[#0ea5e9]/30 shrink-0">
+              <Cross className="h-8 w-8" strokeWidth={3} />
+            </span>
+            <div>
+              <h1 className="text-3xl font-bold text-white leading-tight">MedixMind</h1>
+              <p className="text-sm text-slate-300">Secure Clinical Portal</p>
+            </div>
+          </div>
+
+          <h2 className="text-[42px] sm:text-5xl lg:text-[56px] font-bold text-white leading-[1.1] tracking-tight mb-8">
+            MedixMind:<br />
+            Detect earlier.<br />
+            <span className="text-[#0ea5e9]">Reason better.</span><br />
+            Act safer.
+          </h2>
+
+          <p className="text-lg sm:text-xl text-white mb-12 flex items-center gap-4 font-medium">
+            <span className="h-6 w-1.5 bg-[#0ea5e9] rounded-full shrink-0"></span>
+            The AI that knows its limits.
+          </p>
+
+          <div className="flex flex-wrap items-center gap-6 sm:gap-8 text-sm font-semibold text-white">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 sm:h-6 sm:w-6 text-[#0ea5e9] shrink-0" /> 
+              <div className="leading-tight">Safer<br/>Decisions</div>
+            </div>
+            <div className="w-px h-8 bg-white/20 hidden sm:block"></div>
+            <div className="flex items-center gap-2">
+              <Brain className="h-5 w-5 sm:h-6 sm:w-6 text-[#0ea5e9] shrink-0" /> 
+              <div className="leading-tight">Smarter<br/>Insights</div>
+            </div>
+            <div className="w-px h-8 bg-white/20 hidden sm:block"></div>
+            <div className="flex items-center gap-2">
+              <HeartPulse className="h-5 w-5 sm:h-6 sm:w-6 text-[#0ea5e9] shrink-0" /> 
+              <div className="leading-tight">Better<br/>Outcomes</div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="w-full max-w-md card-surface p-8">
-        
-        {/* Role Selection Tabs */}
-        <div className="flex bg-muted rounded-lg p-1 mb-6">
-          <button
-            onClick={() => setRole("doctor")}
-            className={cn("flex-1 flex items-center justify-center gap-2 text-sm font-semibold py-2.5 rounded-md transition-all", role === "doctor" ? "bg-white shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground")}
-          >
-            <Stethoscope className="h-4 w-4" /> Doctor
-          </button>
-          <button
-            onClick={() => setRole("patient")}
-            className={cn("flex-1 flex items-center justify-center gap-2 text-sm font-semibold py-2.5 rounded-md transition-all", role === "patient" ? "bg-white shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground")}
-          >
-            <User className="h-4 w-4" /> Patient
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
+      {/* RIGHT SIDE - DEMO PROJECT PANEL */}
+      <div className="relative z-30 w-full lg:w-[50%] flex items-center justify-center p-6 lg:p-12">
+        <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-8 border border-white/20">
           
-          {/* DOCTOR LOGIN FORM */}
-          {role === "doctor" && (
-            <>
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-foreground">Hospital Email</label>
-                <input 
-                  type="email" 
-                  required 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="dr.smith@hospital.ru"
-                  className="w-full rounded-lg border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/50" 
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-foreground">Password</label>
-                <input 
-                  type="password" 
-                  required 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full rounded-lg border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/50" 
-                />
-              </div>
-              <p className="text-[10px] text-muted-foreground text-center pt-1">
-                Doctor accounts are provisioned by the hospital administrator.
-              </p>
-            </>
-          )}
+          <div className="text-center mb-8">
+            <h3 className="text-2xl font-bold text-slate-900 mb-2">Demo Project</h3>
+            <p className="text-sm text-slate-500">Select a role to access the secure portal.</p>
+          </div>
 
-          {/* PATIENT LOGIN FORM */}
-          {role === "patient" && (
-            <>
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-foreground">Access Code</label>
-                <div className="relative">
-                  <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <input 
-                    type="text" 
-                    required 
-                    value={accessCode}
-                    onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
-                    placeholder="MD-XXXXX"
-                    className="w-full rounded-lg border pl-10 pr-3 py-2.5 text-sm font-mono tracking-widest outline-none focus:ring-2 focus:ring-primary/50" 
-                  />
+          <div className="space-y-3">
+            <button 
+              onClick={() => openLogin("patient")}
+              className="w-full flex items-center justify-between p-4 rounded-xl border border-slate-200 hover:border-[#0ea5e9] hover:bg-blue-50 transition-all group text-left"
+            >
+              <div className="flex items-center gap-4">
+                <div className="grid h-10 w-10 place-items-center rounded-lg bg-blue-100 text-[#0ea5e9] group-hover:bg-[#0ea5e9] group-hover:text-white transition-colors">
+                  <User className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="font-bold text-slate-900">Patient Portal</p>
+                  <p className="text-xs text-slate-500">Log in with an access code</p>
                 </div>
               </div>
-              <div className="rounded-lg bg-primary-soft p-3 text-xs text-primary-foreground mt-2 border border-primary/20">
-                <p className="font-semibold text-primary mb-1">How to log in:</p>
-                <p className="text-muted-foreground leading-tight">
-                  Your attending physician will provide you with a secure 6-character access code. This links your data directly to their medical dashboard.
-                </p>
+            </button>
+
+            <button 
+              onClick={() => openLogin("doctor")}
+              className="w-full flex items-center justify-between p-4 rounded-xl border border-slate-200 hover:border-[#0ea5e9] hover:bg-blue-50 transition-all group text-left"
+            >
+              <div className="flex items-center gap-4">
+                <div className="grid h-10 w-10 place-items-center rounded-lg bg-teal-100 text-teal-600 group-hover:bg-teal-600 group-hover:text-white transition-colors">
+                  <Stethoscope className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="font-bold text-slate-900">Doctor Portal</p>
+                  <p className="text-xs text-slate-500">Access clinical dashboard</p>
+                </div>
               </div>
-            </>
-          )}
+            </button>
 
-          {/* Submit Button */}
-          <button 
-            type="submit" 
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary py-3 text-sm font-bold text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm mt-4 disabled:opacity-70"
-          >
-            {loading ? "Authenticating..." : role === "doctor" ? "Doctor Sign In" : "Verify Access Code"}
-            {!loading && <ArrowRight className="h-4 w-4" />}
-          </button>
-        </form>
+            <button 
+              onClick={() => openLogin("admin")}
+              className="w-full flex items-center justify-between p-4 rounded-xl border border-slate-200 hover:border-[#0ea5e9] hover:bg-blue-50 transition-all group text-left"
+            >
+              <div className="flex items-center gap-4">
+                <div className="grid h-10 w-10 place-items-center rounded-lg bg-indigo-100 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                  <Server className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="font-bold text-slate-900">Admin Login</p>
+                  <p className="text-xs text-slate-500">Manage system & users</p>
+                </div>
+              </div>
+            </button>
+          </div>
 
-        {/* Security Badges */}
-        <div className="mt-8 flex justify-center gap-4 text-[10px] font-semibold text-muted-foreground">
-          <span className="flex items-center gap-1"><ShieldCheck className="h-3.5 w-3.5 text-success" /> 152-FZ Compliant</span>
-          <span className="flex items-center gap-1"><LockKeyhole className="h-3.5 w-3.5 text-success" /> Secure RU Hosting</span>
+          <div className="mt-8 flex justify-center gap-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+            <span className="flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-green-500" /> 152-FZ Compliant</span>
+          </div>
         </div>
       </div>
+
+      {/* MODAL */}
+      <LoginModal 
+        isOpen={isLoginOpen} 
+        onClose={() => setIsLoginOpen(false)} 
+        initialRole={selectedRole} 
+      />
+
     </div>
   );
 }

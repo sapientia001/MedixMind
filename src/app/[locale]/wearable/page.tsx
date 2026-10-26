@@ -1,56 +1,64 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { CheckCircle2, TriangleAlert, Watch } from "lucide-react";
 import { toast } from "sonner";
 import { PatientShell, TrendCard, eda, hrv, temp } from "@/components/medix";
 import { cn } from "@/lib/utils";
 
-const tabs = ["Overview", "EDA", "HRV", "Temperature"] as const;
 const edaSpike = [5, 6, 5.5, 7, 6, 7.5, 6.5, 8, 7, 18, 9, 8, 10, 9];
 
 export default function Wearable() {
-  const [tab, setTab] = useState<(typeof tabs)[number]>("EDA");
+  const t = useTranslations("Patient");
+  const [tab, setTab] = useState("Overview");
   const [sync, setSync] = useState("10:24 AM");
+
+  const tabs = [
+    { id: "Overview", label: t("overviewTab") },
+    { id: "EDA", label: "EDA" },
+    { id: "HRV", label: "HRV" },
+    { id: "Temperature", label: t("temperatureTab") },
+  ];
 
   const handleSync = () => {
     setSync(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
-    toast.success("Wearable data synced successfully");
+    toast.success(t("syncedSuccess"));
   };
 
   return (
     <PatientShell>
       <div className="border rounded-xl bg-card mx-auto max-w-5xl p-5 shadow-sm">
-        <h1 className="text-lg font-bold">Wearable Data</h1>
+        <h1 className="text-lg font-bold">{t("wearable")}</h1>
         
         {/* Device Status Bar */}
         <div className="mt-3 flex flex-wrap items-center gap-3 text-sm border-b pb-4">
           <Watch className="h-6 w-6 text-primary" />
           <span className="font-semibold">Galaxy Watch</span>
           <span className="flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-700">
-            <CheckCircle2 className="h-3 w-3" /> Connected
+            <CheckCircle2 className="h-3 w-3" /> {t("connected")}
           </span>
-          <span className="ml-auto text-xs text-muted-foreground">Last sync: {sync}</span>
+          <span className="ml-auto text-xs text-muted-foreground">{t("lastSync")}: {sync}</span>
           <button 
             onClick={handleSync}
             className="rounded-md border border-primary/40 px-3 py-1 text-xs text-primary hover:bg-primary/5 transition-colors"
           >
-            Sync Now
+            {t("sync")}
           </button>
         </div>
 
         {/* Tabs */}
         <div className="mt-4 flex gap-1 border-b overflow-x-auto">
-          {tabs.map((t) => (
+          {tabs.map((tItem) => (
             <button 
-              key={t} 
-              onClick={() => setTab(t)} 
+              key={tItem.id} 
+              onClick={() => setTab(tItem.id)} 
               className={cn(
                 "whitespace-nowrap px-4 py-2 text-xs transition-colors", 
-                tab === t ? "border-b-2 border-primary font-semibold text-primary" : "text-muted-foreground hover:text-foreground"
+                tab === tItem.id ? "border-b-2 border-primary font-semibold text-primary" : "text-muted-foreground hover:text-foreground"
               )}
             >
-              {t}
+              {tItem.label}
             </button>
           ))}
         </div>
@@ -61,7 +69,7 @@ export default function Wearable() {
             <TrendCard 
               title="EDA (Electrodermal Activity)" 
               data={edaSpike} 
-              color="#f97316" // Orange
+              color="#f97316"
               axis={["20", "15", "10", "5", "0"]} 
               min={0} 
               max={20} 
@@ -81,9 +89,9 @@ export default function Wearable() {
           
           {(tab === "Overview" || tab === "Temperature") && (
             <TrendCard 
-              title="Skin Temp (°C)" 
+              title={`${t("skinTemp")} (°C)`}
               data={temp} 
-              color="#eab308" // Yellow
+              color="#eab308"
               axis={["37.5", "37.0", "36.5", "36.0"]} 
               min={36} 
               max={37.5} 
@@ -106,9 +114,9 @@ export default function Wearable() {
         <div className="mt-6 flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive shadow-sm">
           <TriangleAlert className="h-5 w-5 shrink-0 mt-0.5" />
           <div>
-            <p className="font-semibold">Physiological Alert Detected</p>
+            <p className="font-semibold">{t("wearableAlertTitle")}</p>
             <p className="text-xs mt-1 opacity-90">
-              Elevated Skin Conductance Level (SCL) detected in the early morning. This correlates with your self-reported insomnia and triggers a safety flag for your clinician to review.
+              {t("wearableAlertDesc")}
             </p>
           </div>
         </div>
