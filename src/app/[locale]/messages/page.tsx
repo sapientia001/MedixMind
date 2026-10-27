@@ -42,7 +42,7 @@ export default function PatientMessages() {
 
   useEffect(() => {
     fetchMessages();
-    const interval = setInterval(fetchMessages, 3000); // Poll every 3 seconds
+    const interval = setInterval(fetchMessages, 3000); // Poll every 3 seconds for demo
     return () => clearInterval(interval);
   }, []);
 

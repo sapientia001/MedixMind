@@ -15,7 +15,7 @@ export default async function DoctorPatientsServer() {
         id: p.id,
         initials: (p.accessCode || p.id).substring(0, 2).toUpperCase(),
         name: p.name || `Patient ${p.accessCode || p.id.substring(0, 4)}`,
-        accessCode: p.accessCode, // <--- THIS LINE IS REQUIRED
+        accessCode: p.accessCode, 
         meta: `ID: ${p.id.substring(0, 8)}`,
         risk: hasAlert ? "Critical" : "Low",
         type: "Chat", 

@@ -85,7 +85,6 @@ export default function Form() {
                           checked={answers[i] === j} 
                           onChange={() => {
                             setAnswers({ ...answers, [i]: j });
-                            // Optional: auto-advance if desired
                           }} 
                           className="h-4 w-4 accent-primary" 
                         />

@@ -38,7 +38,7 @@ export default function DoctorCommandCenter({
           {t("title")}
         </h1>
 
-        {/* METRICS GRID */}
+        {/* METRICS GRID - will work on this letter*/}
         <div className="grid gap-4 md:grid-cols-3">
           <div className="rounded-xl border bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between">

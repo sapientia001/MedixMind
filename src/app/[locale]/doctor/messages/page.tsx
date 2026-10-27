@@ -28,7 +28,7 @@ export default function DoctorMessages() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
-  // NEW: mobile pane state — "list" shows the inbox, "chat" shows the conversation
+ 
   const [mobileView, setMobileView] = useState<"list" | "chat">("list");
   const endRef = useRef<HTMLDivElement>(null);
 
@@ -85,12 +85,7 @@ export default function DoctorMessages() {
 
   return (
     <DoctorShell>
-      {/*
-        Layout strategy:
-        - Mobile (< lg): one pane at a time. `mobileView` controls which.
-          Fixed height using dvh so the keyboard doesn't push the input off-screen.
-        - Desktop (>= lg): both panes side by side, as before.
-      */}
+
       <div className="mx-auto max-w-4xl flex gap-4 h-[calc(100dvh-8rem)] lg:h-[calc(100vh-10rem)]">
 
         {/* ===== LEFT: INBOX ===== */}
@@ -98,7 +93,6 @@ export default function DoctorMessages() {
           data-onboarding-id="doctor-messages-header"
           className={cn(
             "card-surface flex-col overflow-hidden",
-            // Mobile: full width, show only when mobileView === "list"
             "w-full lg:w-1/3 lg:flex",
             mobileView === "list" ? "flex" : "hidden"
           )}

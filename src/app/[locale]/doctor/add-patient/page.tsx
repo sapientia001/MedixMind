@@ -12,7 +12,7 @@ export default function AddPatientPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedCode, setGeneratedCode] = useState<string | null>(null);
 
-  // Hardcoded Demo Doctor ID from your seed script
+  // Hardcoded Demo Doctor ID from seed script
   const DEMO_DOCTOR_ID = "abae8689-6bf8-4e3f-a505-2556e9f21802";
 
   usePageTour("doctor-add-patient", [
