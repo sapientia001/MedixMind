@@ -56,7 +56,7 @@ MedixMind is built with strict clinical guardrails to meet rigorous healthcare s
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/YOUR_USERNAME/medixmind.git
+    git clone https://github.com/sapientia001/MedixMind.git
     cd medixmind
     ```
 
